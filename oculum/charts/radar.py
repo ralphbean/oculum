@@ -46,9 +46,10 @@ def add_to_chart(chart, username):
     return chart
 
 
-def make_chart(username):
-    chart = pygal.Radar(
-        style=pygal.style.CleanStyle,
-    )
+def make_chart(username, style='default', **args):
+    if isinstance(style, list):
+        style = style[0]
+    style = pygal.style.styles[style]
+    chart = pygal.Radar(style=style)
     chart = add_to_chart(chart, username)
     return chart

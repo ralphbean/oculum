@@ -19,9 +19,13 @@ def profile(username):
 
 @app.route('/<username>/radar/')
 def radar(username):
-    return charts.make_radar_chart(username).render_response()
+    args = flask.request.args
+    chart = charts.make_radar_chart(username, **args)
+    return chart.render_response()
 
 
 @app.route('/<username>/dots/')
 def dots(username):
-    return charts.make_dots_chart(username).render_response()
+    args = flask.request.args
+    chart = charts.make_dots_chart(username, **args)
+    return chart.render_response()

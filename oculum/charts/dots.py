@@ -26,12 +26,13 @@ def message_count(user, start):
     ])
 
 
-def make_chart(username):
-    # TODO -- replace print with logging
-    print "Building chart for %r" % username
+def make_chart(username, style='default', **args):
+    if isinstance(style, list):
+        style = style[0]
+    style = pygal.style.styles[style]
     chart = pygal.Dot(
         x_label_rotation=90,
-        style=pygal.style.CleanStyle,
+        style=style,
     )
     chart.title = title_template % username
 
