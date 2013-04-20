@@ -14,10 +14,10 @@ import math
 
 
 def message_count(user, category):
-    return math.log(len([
+    return len([
         msg for msg in user.messages
         if msg.category == category
-    ]) + 1)
+    ])
 
 
 def add_to_chart(chart, username):
@@ -33,6 +33,8 @@ def add_to_chart(chart, username):
     excluded = ['logger', 'announce', 'compose', 'unhandled']
     for item in excluded:
         categories.remove(item)
+
+    categories.sort()
 
     data = [message_count(user, category) for category in categories]
     chart.x_labels = categories
@@ -50,6 +52,6 @@ def make_chart(username, style='default', **args):
     if isinstance(style, list):
         style = style[0]
     style = pygal.style.styles[style]
-    chart = pygal.Radar(style=style)
+    chart = pygal.Radar(style=style, fill=True)
     chart = add_to_chart(chart, username)
     return chart
