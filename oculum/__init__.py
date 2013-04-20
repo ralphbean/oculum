@@ -25,7 +25,3 @@ def radar(username):
 @app.route('/<username>/dots/')
 def dots(username):
     return charts.make_dots_chart(username).render_response()
-
-
-app.debug = True
-app.run()
