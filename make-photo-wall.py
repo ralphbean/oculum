@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import os
-import datanommer.models as m
 import sqlalchemy
 import oculum
-import requests
 import shelve
-import urllib
 import time
 import sh
+import bs4
+import urllib
+import hashlib
+import requests
 
 # For development purposes
 datadir = oculum.datadir
@@ -31,43 +32,26 @@ except OSError:
 
 
 # We need 12*5==60 images to do this right.
-def good_gravatars(N=12 * 5):
+def avatars(N=12 * 5):
+
     count = 0
-    results = []
-    checked = []
-    while True:
-        try:
-            all_users = m.session.query(m.User)\
-                .order_by(sqlalchemy.func.random())\
-                .limit(500)\
-                .all()
-        except UnicodeDecodeError:
-            print " * crap"
-            all_users = []
 
-        for user in all_users:
-            if user.name in checked:
-                continue
-            checked.append(user.name)
-            gravatar_url = oculum.make_gravatar(user.name)
-            response = requests.get(gravatar_url, params={'d': 404})
+    url = 'https://badges.fedoraproject.org/badge/mugshot/full'
 
-            if response.status_code == 200:
-                if (user.name, gravatar_url) not in results:
-                    results.append((user.name, gravatar_url))
-                    print len(results), "of", N, "good ones found so far."
+    response = requests.get(url)
+    soup = bs4.BeautifulSoup(response.text)
+    last_pane = soup.findAll(attrs={'class': 'grid-100'})[-1]
+    persons = last_pane.findAll('a')
+    for person in persons:
+        count = count + 1
+        if count >= N:
+            break
 
-            if len(results) >= N:
-                return results
-
-
-def refresh_cache():
-    candidates = good_gravatars()
-
-    import shelve
-    d = shelve.open(os.path.join(datadir, "candidates.shelve"))
-    d['candidates'] = candidates
-    d.close()
+        name = person.text.strip()
+        openid = 'http://%s.id.fedoraproject.org/' % name
+        hash = hashlib.sha256(openid).hexdigest()
+        url = "https://seccdn.libravatar.org/avatar/%s" % hash
+        yield (name, url)
 
 
 def make_montage(candidates):
@@ -85,13 +69,7 @@ def make_montage(candidates):
 
 
 def main():
-    # This takes a long time
-    #refresh_cache()
-
-    import shelve
-    d = shelve.open(os.path.join(datadir, "candidates.shelve"))
-    candidates = d['candidates']
-    d.close()
+    candidates = avatars()
 
     make_montage(candidates)
 
